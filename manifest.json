@@ -2,7 +2,7 @@
   "name": "Sandro Wall TV",
   "short_name": "Sandro TV",
   "description": "Premium Live Matrix - Streaming TV Wall Professionale",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#ff0033",
