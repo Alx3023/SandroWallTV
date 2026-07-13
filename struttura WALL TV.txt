@@ -1,0 +1,7 @@
+📁 La-tua-cartella-progetto/
+ ├── 📄 index.html          (Il codice HTML sopra)
+ ├── 📄 manifest.json       (Il codice JSON sopra)
+ ├── 📄 sw.js               (Il codice JS sopra)
+ └── 📁 icons/              (Crea questa cartella!)
+      ├── 🖼️ icon-192.png   (La tua icona 192x192 pixel)
+      └── 🖼️ icon-512.png   (La tua icona 512x512 pixel)

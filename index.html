@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>SANDRO WALL TV — Premium Broadcast Matrix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sandro Wall TV">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Rajdhani:wght@500;700;900&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+    :root {
+        --primary: #ff0033;
+        --primary-glow: rgba(255, 0, 51, 0.5);
+        --accent: #00f0ff;
+        --accent-glow: rgba(0, 240, 255, 0.4);
+        --success: #00ff88;
+        --warning: #ffaa00;
+        --bg-dark: #050505;
+        --bg-panel: rgba(8, 10, 18, 0.92);
+        --text-main: #ffffff;
+        --text-dim: #8892b0;
+        --border-subtle: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+        background: var(--bg-dark);
+        height: 100%;
+        font-family: 'Inter', sans-serif;
+        color: var(--text-main);
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+    }
+
+    /* ================= HEADER ================= */
+    #header {
+        position: fixed; top: 0; left: 0; width: 100%; height: 95px;
+        z-index: 100; background: var(--bg-panel);
+        backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        overflow: hidden;
+        transition: transform 0.4s ease;
+    }
+
+    #header::before {
+        content: ''; position: absolute; inset: 0;
+        background-image: 
+            linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+        background-size: 40px 40px; pointer-events: none;
+    }
+
+    #header::after {
+        content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent 0%, var(--primary) 15%, var(--accent) 50%, var(--primary) 85%, transparent 100%);
+        background-size: 200% 100%; animation: gradientFlow 4s linear infinite;
+        box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    @keyframes gradientFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    body.cinema-mode #header, body.cinema-mode #ticker, body.cinema-mode #toolbar { transform: translateY(-100%); }
+    body.cinema-mode #wall { top: 0; bottom: 0; }
+
+    .header-content {
+        position: relative; display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        align-items: center; height: 100%;
+        padding: 0 30px; gap: 25px; z-index: 2;
+    }
+
+    .brand-section {
+        display: flex; align-items: center; gap: 18px;
+        padding-right: 25px; border-right: 1px solid var(--border-subtle);
+    }
+
+    .brand-box {
+        font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 32px;
+        letter-spacing: 1.5px; padding: 10px 22px;
+        background: linear-gradient(135deg, #ff0033 0%, #cc0029 50%, #ff0033 100%);
+        background-size: 200% 200%; border-radius: 8px; color: white;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 25px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        animation: logoGradient 5s ease infinite;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    @keyframes logoGradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+    .brand-box::before {
+        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: logoShimmer 3.5s infinite;
+    }
+
+    @keyframes logoShimmer { 0% { left: -100%; } 100% { left: 200%; } }
+
+    .brand-info { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .brand-title { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; white-space: nowrap; }
+    .brand-subtitle { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; text-shadow: 0 0 8px var(--accent-glow); white-space: nowrap; }
+
+    .stats-section { display: flex; gap: 15px; justify-content: center; }
+    .stat-card {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        padding: 8px 16px; background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--border-subtle); border-radius: 8px;
+        min-width: 85px; position: relative; overflow: hidden;
+    }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+    .stat-label { font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; }
+    .stat-value { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+    .stat-value.success { color: var(--success); text-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
+    .stat-value.warning { color: var(--warning); text-shadow: 0 0 10px rgba(255, 170, 0, 0.4); }
+
+    .clock-section {
+        display: flex; flex-direction: column; align-items: center; gap: 2px;
+        padding: 8px 20px; background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px;
+        flex-shrink: 0;
+    }
+    .clock-label { font-family: 'Rajdhani', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; white-space: nowrap; }
+    .clock-display { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 15px var(--accent-glow); white-space: nowrap; }
+
+    .controls-section { display: flex; gap: 10px; align-items: center; padding-left: 25px; border-left: 1px solid var(--border-subtle); flex-shrink: 0; }
+    .btn-icon {
+        width: 42px; height: 42px; background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle); border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; color: var(--text-main);
+        flex-shrink: 0;
+    }
+    .btn-icon:hover { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); transform: translateY(-1px); }
+    .btn-icon:active { transform: scale(0.95); }
+    #m3uFile { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 5; }
+
+    .col-control { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.4); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); flex-shrink: 0; }
+    .col-control input { width: 40px; background: transparent; border: none; color: var(--accent); text-align: center; font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 700; outline: none; }
+
+    /* ================= TOOLBAR ================= */
+    #toolbar {
+        position: fixed; top: 95px; left: 0; width: 100%; height: 50px;
+        background: rgba(5, 5, 10, 0.95); backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex; align-items: center; padding: 0 20px; gap: 15px;
+        z-index: 95; transition: transform 0.4s ease;
+    }
+    body.cinema-mode #toolbar { transform: translateY(-150%); }
+
+    .search-box {
+        display: flex; align-items: center; gap: 8px;
+        background: rgba(255, 255, 255, 0.04); padding: 6px 12px;
+        border: 1px solid var(--border-subtle); border-radius: 8px;
+        flex: 0 0 280px;
+    }
+    .search-box input {
+        flex: 1; background: transparent; border: none; color: white;
+        font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+    }
+    .search-box input::placeholder { color: var(--text-dim); }
+
+    .category-tabs {
+        display: flex; gap: 8px; flex: 1; overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .category-tab {
+        padding: 6px 14px; background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle); border-radius: 6px;
+        font-family: 'Rajdhani', sans-serif; font-size: 13px;
+        font-weight: 700; color: var(--text-dim); cursor: pointer;
+        white-space: nowrap; transition: all 0.2s; text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .category-tab:hover { color: white; border-color: var(--primary); }
+    .category-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+    .volume-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .volume-slider { width: 80px; accent-color: var(--primary); cursor: pointer; }
+
+    /* ================= TV WALL ================= */
+    #wall {
+        position: absolute; top: 145px; bottom: 45px; left: 0; right: 0;
+        overflow-y: auto; 
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px; padding: 8px;
+        background: radial-gradient(circle at 50% 30%, #0a1525 0%, #000000 70%);
+        transition: top 0.4s ease, bottom 0.4s ease;
+        content-visibility: auto;
+        contain-intrinsic-size: 0 500px;
+    }
+    body.cinema-mode #wall { top: 0; bottom: 0; }
+
+    #wall::-webkit-scrollbar { width: 6px; }
+    #wall::-webkit-scrollbar-track { background: transparent; }
+    #wall::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    #wall::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    .video-card {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%;
+        background: #0a0a0a;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        /* FIX: rimosso contain: layout perché blocca position: fixed dei figli */
+        contain: style paint;
+    }
+
+    .video-card:hover { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 25px rgba(255, 0, 51, 0.3);
+    }
+
+    .video-card.filtered-out { display: none; }
+
+    .video-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        background: #000;
+    }
+
+    /* FIX: fullscreen container - ora funziona perché rimosso contain: layout */
+    .video-container.fullscreen-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 10000 !important;
+        overflow: hidden !important;
+        border-radius: 0 !important;
+        background: black !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+        display: block;
+    }
+
+    .skeleton {
+        position: absolute; inset: 0;
+        background: linear-gradient(90deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        background-size: 200% 100%;
+        animation: skeletonShine 1.5s infinite;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2;
+    }
+    .skeleton::after {
+        content: ''; width: 40px; height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes skeletonShine { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .skeleton.hidden { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+
+    .channel-overlay {
+        position: absolute; bottom: 0; left: 0; width: 100%;
+        padding: 30px 10px 10px 10px;
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+        font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px;
+        color: white; opacity: 0; transform: translateY(10px);
+        transition: all 0.3s ease; pointer-events: none;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        z-index: 3;
+    }
+    .video-card:hover .channel-overlay { opacity: 1; transform: translateY(0); }
+    .video-container.fullscreen-container .channel-overlay {
+        opacity: 1;
+        transform: translateY(0);
+        font-size: 18px;
+        padding: 40px 20px 20px 20px;
+    }
+
+    .live-badge {
+        position: absolute; top: 6px; left: 6px;
+        display: flex; align-items: center; gap: 5px;
+        background: rgba(0, 0, 0, 0.85); padding: 3px 8px;
+        border-radius: 4px; font-family: 'Rajdhani', sans-serif;
+        font-size: 11px; font-weight: 700; color: white;
+        border: 1px solid rgba(255, 0, 51, 0.5); z-index: 5;
+        backdrop-filter: blur(5px);
+    }
+    .live-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; position: relative; }
+    .live-dot::after {
+        content: ''; position: absolute; inset: -2px; border-radius: 50%;
+        border: 2px solid var(--primary);
+        animation: ripple 1.5s infinite ease-out;
+    }
+    @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+
+    .stream-quality {
+        position: absolute; top: 6px; right: 6px;
+        background: rgba(0, 0, 0, 0.85); padding: 3px 6px;
+        border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+        font-size: 10px; font-weight: 700; color: var(--success);
+        border: 1px solid rgba(0, 255, 136, 0.3); z-index: 5;
+    }
+
+    .audio-active::after {
+        content: ""; position: absolute; top: 10px; right: 10px;
+        background: rgba(0, 240, 255, 0.2); color: var(--accent);
+        border-radius: 50%; width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; z-index: 10; border: 2px solid var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    /* Pulsante chiudi fullscreen */
+    .close-fullscreen {
+        display: none;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 0, 51, 0.9);
+        border: 2px solid white;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        font-weight: 900;
+        cursor: pointer;
+        z-index: 10001;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-family: 'Orbitron', sans-serif;
+    }
+    .close-fullscreen:hover {
+        background: white;
+        color: var(--primary);
+        transform: scale(1.1);
+    }
+    .video-container.fullscreen-container .close-fullscreen {
+        display: flex;
+    }
+
+    /* TICKER */
+    #breakingBanner {
+        position: fixed; top: 145px; left: 0; width: 100%; height: 50px;
+        background: linear-gradient(90deg, #ff0033, #99001f);
+        display: flex; align-items: center; justify-content: center;
+        padding: 0 25px; font-family: 'Orbitron', sans-serif;
+        font-size: 22px; font-weight: 900; color: white;
+        text-transform: uppercase; letter-spacing: 3px;
+        z-index: 90; opacity: 0; transform: translateY(-50px);
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: none; box-shadow: 0 4px 25px rgba(255, 0, 51, 0.5);
+    }
+    #breakingBanner.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    #ticker {
+        position: fixed; bottom: 0; left: 0; width: 100%; height: 45px;
+        background: rgba(5, 5, 10, 0.95); border-top: 2px solid rgba(255, 0, 51, 0.3);
+        overflow: hidden; z-index: 95; display: flex; align-items: center;
+        backdrop-filter: blur(10px); transition: transform 0.4s ease;
+    }
+    #tickerLabel {
+        background: var(--primary); padding: 0 15px; height: 100%;
+        font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px;
+        color: white; display: flex; align-items: center; justify-content: center;
+        letter-spacing: 2px; box-shadow: 5px 0 20px rgba(255, 0, 51, 0.4); min-width: 120px;
+    }
+    #tickerInner { flex: 1; height: 100%; overflow: hidden; position: relative; }
+    #tickerText {
+        position: absolute; top: 50%; left: 100%;
+        transform: translateY(-50%); white-space: nowrap;
+        font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700;
+        color: #ffccd5; will-change: transform;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    }
+    .glow { animation: glowPulse 2s infinite ease-in-out; }
+    @keyframes glowPulse {
+        0%, 100% { text-shadow: 0 0 5px rgba(255, 0, 50, 0.5); }
+        50% { text-shadow: 0 0 25px rgba(255, 0, 50, 1), 0 0 50px rgba(255, 0, 50, 0.6); }
+    }
+
+    .loader { grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; height: 100%; font-family: 'Orbitron', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--text-dim); }
+
+    .toast {
+        position: fixed; bottom: 60px; right: 20px;
+        background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
+        border: 1px solid var(--accent); border-radius: 8px;
+        padding: 12px 20px; font-family: 'Rajdhani', sans-serif;
+        font-size: 14px; font-weight: 700; color: var(--accent);
+        z-index: 9999; opacity: 0; transform: translateX(100%);
+        transition: all 0.3s ease; box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .toast.show { opacity: 1; transform: translateX(0); }
+
+    .shortcuts-hint {
+        position: fixed; bottom: 55px; left: 20px;
+        background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+        border: 1px solid var(--border-subtle); border-radius: 6px;
+        padding: 8px 12px; font-family: 'JetBrains Mono', monospace;
+        font-size: 11px; color: var(--text-dim); z-index: 50;
+        display: flex; gap: 12px;
+    }
+    .shortcuts-hint kbd {
+        background: rgba(255, 255, 255, 0.1); padding: 2px 6px;
+        border-radius: 3px; color: var(--accent); font-weight: 700;
+    }
+
+    @media (max-width: 1600px) { #wall { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 1200px) { 
+        #wall { grid-template-columns: repeat(3, 1fr); } 
+        .stats-section { display: none; } 
+        .brand-subtitle { display: none; }
+        .header-content { gap: 15px; padding: 0 20px; }
+    }
+    @media (max-width: 900px) {
+        .brand-box { font-size: 24px; padding: 8px 16px; }
+        .brand-info { display: none; }
+        .clock-section { display: none; }
+    }
+    @media (max-width: 768px) {
+        #header { height: 75px; }
+        #toolbar { top: 75px; height: 45px; flex-wrap: wrap; padding: 5px 10px; }
+        #wall { grid-template-columns: repeat(2, 1fr); top: 125px; }
+        .brand-box { font-size: 20px; padding: 6px 12px; }
+        .controls-section { padding-left: 10px; gap: 6px; }
+        .brand-section { padding-right: 10px; gap: 10px; }
+        .search-box { flex: 1 1 100%; }
+        .shortcuts-hint { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<div id="header">
+    <div class="header-content">
+        <div class="brand-section">
+            <div class="brand-box">SANDRO WALL TV</div>
+            <div class="brand-info">
+                <div class="brand-title">Broadcast System</div>
+                <div class="brand-subtitle">v3.2 PRO</div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" id="streamCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active</div>
+                <div class="stat-value success" id="activeStreams">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Feed</div>
+                <div class="stat-value success" id="feedStatus">ON</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pool</div>
+                <div class="stat-value warning" id="poolStatus">0/8</div>
+            </div>
+        </div>
+
+        <div class="clock-section">
+            <div class="clock-label">Local Time</div>
+            <div class="clock-display" id="clock">00:00:00</div>
+        </div>
+
+        <div class="controls-section">
+            <label class="btn-icon" title="Carica Playlist M3U">
+                <input type="file" id="m3uFile" accept=".m3u,.m3u8">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4h16v2H4zm0 7h16v2H4zm0 7h16v2H4z"/></svg>
+            </label>
+            <div class="col-control">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M7 10v4h10v-4H7zm-2 6h14v2H5zm0-10h14v2H5z"/></svg>
+                <input type="number" id="cols" value="5" min="1" max="10" title="Colonne">
+            </div>
+            <button class="btn-icon" id="cinemaBtn" title="Modalità Cinema (C)">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v2H5z"/></svg>
+            </button>
+            <button class="btn-icon" id="installBtn" title="Installa App" style="display:none; color: #00ff88;">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toolbar">
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#8892b0" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="searchInput" placeholder="Cerca canale...">
+    </div>
+    <div class="category-tabs" id="categoryTabs">
+        <div class="category-tab active" data-category="all">Tutti</div>
+    </div>
+    <div class="volume-control">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#8892b0" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+    </div>
+</div>
+
+<div id="breakingBanner"> BREAKING NEWS</div>
+
+<div id="wall" aria-live="polite">
+    <div class="loader">IN ATTESA DI PLAYLIST...</div>
+</div>
+
+<div id="ticker" role="status" aria-live="polite">
+    <div id="tickerLabel">LIVE FEED</div>
+    <div id="tickerInner"><span id="tickerText">Connessione al satellite notizie in corso...</span></div>
+</div>
+
+<div class="shortcuts-hint">
+    <span><kbd>C</kbd> Cinema</span>
+    <span><kbd>F</kbd> Fullscreen</span>
+    <span><kbd>M</kbd> Mute</span>
+    <span><kbd>ESC</kbd> Exit</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CONFIG = {
+    MAX_ACTIVE_STREAMS: 8,
+    MAX_STREAMS_LARGE_LIST: 6,
+    POOL_RELEASE_DELAY: 3000,
+    LARGE_LIST_THRESHOLD: 100,
+    RSS_FEEDS: [
+        "https://www.ansa.it/sito/ansait_rss.xml",
+        "https://feeds.reuters.com/reuters/topNews",
+        "https://tg24.sky.it/rss/tg24_mondo.xml"
+    ],
+    COLOR_RULES: [
+        { keyword: "BREAKING", color: "#ff0033" },
+        { keyword: "ULTIM'ORA", color: "#ff0033" },
+        { keyword: "URGENTE", color: "#ff6600" },
+        { keyword: "POLITICA", color: "#00aaff" },
+        { keyword: "SPORT", color: "#00ff66" },
+        { keyword: "METEO", color: "#ffff33" }
+    ]
+};
+
+const STATE = {
+    allStreams: [],
+    activeHlsInstances: new Map(),
+    currentlyActiveVideo: null,
+    currentlyActiveContainer: null,
+    originalParent: null,
+    categories: new Set(['all']),
+    currentCategory: 'all',
+    searchQuery: '',
+    globalVolume: 0.7,
+    deferredPrompt: null,
+    releaseTimers: new Map(),
+    isLargeList: false
+};
+
+const $ = (id) => document.getElementById(id);
+const wall = $('wall');
+
+function showToast(message, duration = 3000) {
+    const toast = $('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function loadSettings() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('sandro_tv_settings') || '{}');
+        if (saved.cols) $('cols').value = saved.cols;
+        if (saved.volume !== undefined) {
+            STATE.globalVolume = saved.volume;
+            $('volumeSlider').value = saved.volume * 100;
+        }
+    } catch (e) {}
+}
+
+function saveSettings() {
+    localStorage.setItem('sandro_tv_settings', JSON.stringify({
+        cols: $('cols').value,
+        volume: STATE.globalVolume
+    }));
+}
+
+function updateClock() {
+    $('clock').textContent = new Date().toLocaleTimeString('it-IT', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+const installBtn = $('installBtn');
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    STATE.deferredPrompt = e;
+    installBtn.style.display = "inline-flex";
+});
+installBtn.addEventListener("click", async () => {
+    if (STATE.deferredPrompt) {
+        STATE.deferredPrompt.prompt();
+        const { outcome } = await STATE.deferredPrompt.userChoice;
+        if (outcome === "accepted") installBtn.style.display = "none";
+        STATE.deferredPrompt = null;
+    }
+});
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+function getMaxStreams() {
+    return STATE.isLargeList ? CONFIG.MAX_STREAMS_LARGE_LIST : CONFIG.MAX_ACTIVE_STREAMS;
+}
+
+function updatePoolStatus() {
+    const max = getMaxStreams();
+    $('poolStatus').textContent = `${STATE.activeHlsInstances.size}/${max}`;
+    $('activeStreams').textContent = STATE.activeHlsInstances.size;
+}
+
+function getVideoPriority(video) {
+    const rect = video.getBoundingClientRect();
+    const viewportCenter = window.innerHeight / 2;
+    const videoCenter = rect.top + rect.height / 2;
+    return Math.abs(viewportCenter - videoCenter);
+}
+
+function getVisibleVideos() {
+    const videos = Array.from(document.querySelectorAll('.video-card:not(.filtered-out) video'));
+    return videos
+        .filter(v => {
+            const rect = v.getBoundingClientRect();
+            return rect.bottom > 0 && rect.top < window.innerHeight;
+        })
+        .sort((a, b) => getVideoPriority(a) - getVideoPriority(b));
+}
+
+function canAllocateStream() {
+    return STATE.activeHlsInstances.size < getMaxStreams();
+}
+
+function releaseStream(video) {
+    const hls = STATE.activeHlsInstances.get(video);
+    if (hls) {
+        hls.destroy();
+        STATE.activeHlsInstances.delete(video);
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        updatePoolStatus();
+    }
+}
+
+function rebalancePool() {
+    if (STATE.activeHlsInstances.size >= getMaxStreams()) return;
+    const visible = getVisibleVideos();
+    for (const video of visible) {
+        if (STATE.activeHlsInstances.size >= getMaxStreams()) break;
+        if (STATE.activeHlsInstances.has(video)) continue;
+        if (video.dataset.url && video.dataset.canPlay !== "true") {
+            activateStream(video, video.dataset.url);
+        }
+    }
+}
+
+const videoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+            if (STATE.releaseTimers.has(video)) {
+                clearTimeout(STATE.releaseTimers.get(video));
+                STATE.releaseTimers.delete(video);
+            }
+            if (video.dataset.url && !STATE.activeHlsInstances.has(video)) {
+                if (canAllocateStream()) activateStream(video, video.dataset.url);
+            } else if (video.dataset.canPlay === "true") {
+                video.play().catch(() => {});
+            }
+        } else {
+            if (STATE.activeHlsInstances.has(video) && video !== STATE.currentlyActiveVideo) {
+                const timer = setTimeout(() => {
+                    releaseStream(video);
+                    STATE.releaseTimers.delete(video);
+                }, CONFIG.POOL_RELEASE_DELAY);
+                STATE.releaseTimers.set(video, timer);
+            }
+            video.pause();
+        }
+    });
+}, { threshold: 0.1, rootMargin: '50px' });
+
+function activateStream(video, url) {
+    if (STATE.activeHlsInstances.has(video)) return;
+    const container = video.closest('.video-container');
+    const skeleton = container ? container.querySelector('.skeleton') : null;
+    
+    if (url.includes('.m3u8') && Hls.isSupported()) {
+        const hls = new Hls({
+            maxBufferLength: 10,
+            maxMaxBufferLength: 20,
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 5,
+            startLevel: -1
+        });
+        STATE.activeHlsInstances.set(video, hls);
+        updatePoolStatus();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+            video.dataset.canPlay = "true";
+            if (skeleton) skeleton.classList.add('hidden');
+            if (data.levels && data.levels.length > 0) {
+                const quality = data.levels[data.levels.length - 1];
+                const qualityEl = container ? container.querySelector('.stream-quality') : null;
+                if (qualityEl && quality.height) qualityEl.textContent = `${quality.height}P`;
+            }
+            if (videoObserver.isVisible(video)) {
+                video.volume = STATE.globalVolume;
+                video.play().catch(() => {});
+            }
+        });
+        let retryCount = 0;
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                if (retryCount < 3 && data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                    retryCount++;
+                    setTimeout(() => hls.startLoad(), 2000);
+                } else {
+                    releaseStream(video);
+                    if (container) {
+                        container.innerHTML = "<div style='color:#ff0033;padding:12px;text-align:center;font-family:Orbitron;font-weight:700;font-size:12px;height:100%;display:flex;align-items:center;justify-content:center'>OFFLINE</div>";
+                    }
+                }
+            }
+        });
+    } else {
+        video.src = url;
+        video.dataset.canPlay = "true";
+        if (skeleton) skeleton.classList.add('hidden');
+        video.addEventListener('loadeddata', () => {
+            if (videoObserver.isVisible(video)) {
+                video.volume = STATE.globalVolume;
+                video.play().catch(() => {});
+            }
+        }, { once: true });
+        video.addEventListener('error', () => {
+            if (container) {
+                container.innerHTML = "<div style='color:#ff0033;padding:12px;text-align:center;font-family:Orbitron;font-weight:700;font-size:12px;height:100%;display:flex;align-items:center;justify-content:center'>OFFLINE</div>";
+            }
+        }, { once: true });
+    }
+}
+
+/* ============================================
+   FIX DEFINITIVO FULLSCREEN
+   Sposta il container nel body per bypassare contain:layout
+   ============================================ */
+function toggleVideoFullscreen(video) {
+    const container = video.closest('.video-container');
+    const card = video.closest('.video-card');
+    const isFullscreen = container.classList.contains('fullscreen-container');
+    
+    if (!isFullscreen) {
+        // Chiudi altri fullscreen
+        document.querySelectorAll('.video-container.fullscreen-container').forEach(c => {
+            exitFullscreenFromContainer(c);
+        });
+        
+        // Salva il parent originale
+        STATE.originalParent = card;
+        STATE.currentlyActiveContainer = container;
+        STATE.currentlyActiveVideo = video;
+        
+        // Sposta il container nel body (bypassa contain:layout)
+        document.body.appendChild(container);
+        
+        // Applica fullscreen
+        container.classList.add('fullscreen-container');
+        video.muted = false;
+        video.volume = STATE.globalVolume;
+        video.classList.add('audio-active');
+        video.play().catch(() => { video.muted = true; video.play(); });
+        
+        // Disattiva altri video
+        document.querySelectorAll('video').forEach(v => {
+            if (v !== video) {
+                v.muted = true;
+                v.classList.remove('audio-active');
+            }
+        });
+        
+        showToast('🎬 Fullscreen - ESC per uscire');
+    } else {
+        exitFullscreenFromContainer(container);
+    }
+}
+
+function exitFullscreenFromContainer(container) {
+    const video = container.querySelector('video');
+    
+    // Rimuovi classe fullscreen
+    container.classList.remove('fullscreen-container');
+    
+    // Rimuovi pulsante close se esiste
+    const closeBtn = container.querySelector('.close-fullscreen');
+    if (closeBtn) closeBtn.remove();
+    
+    // Rimetti il container nella card originale
+    if (STATE.originalParent && STATE.originalParent.parentNode) {
+        STATE.originalParent.appendChild(container);
+    }
+    
+    if (video) {
+        video.classList.remove('audio-active');
+        video.muted = true;
+    }
+    
+    STATE.currentlyActiveVideo = null;
+    STATE.currentlyActiveContainer = null;
+    STATE.originalParent = null;
+}
+
+/* ============================================
+   PARSER M3U
+   ============================================ */
+function parseM3UAdvanced(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const streams = [];
+    let currentName = "Canale Sconosciuto";
+    let currentGroup = "Generale";
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#EXTINF:')) {
+            const commaIndex = lines[i].lastIndexOf(',');
+            currentName = commaIndex !== -1 ? lines[i].substring(commaIndex + 1).trim() : "Canale Sconosciuto";
+            const groupMatch = lines[i].match(/group-title="([^"]+)"/i);
+            currentGroup = groupMatch ? groupMatch[1].trim() : "Generale";
+        } else if (/^https?:\/\//i.test(lines[i]) || /^rtsp:\/\//i.test(lines[i])) {
+            streams.push({ name: currentName, group: currentGroup, url: lines[i] });
+            currentName = "Canale Sconosciuto";
+            currentGroup = "Generale";
+        }
+    }
+    return streams;
+}
+
+function renderWall(streams) {
+    STATE.allStreams = streams;
+    STATE.isLargeList = streams.length > CONFIG.LARGE_LIST_THRESHOLD;
+    STATE.activeHlsInstances.forEach((hls, video) => hls.destroy());
+    STATE.activeHlsInstances.clear();
+    STATE.releaseTimers.forEach(t => clearTimeout(t));
+    STATE.releaseTimers.clear();
+    
+    const cols = Math.max(1, parseInt($('cols').value || 5, 10));
+    wall.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    $('streamCount').textContent = streams.length;
+    updatePoolStatus();
+    
+    if (!streams.length) {
+        wall.innerHTML = "<div class='loader' style='color:#ff0033'>NESSUNO STREAM VALIDO</div>";
+        return;
+    }
+    
+    STATE.categories = new Set(['all']);
+    streams.forEach(s => STATE.categories.add(s.group));
+    renderCategories();
+    
+    const fragment = document.createDocumentFragment();
+    streams.forEach((stream, index) => {
+        const card = document.createElement("div");
+        card.className = "video-card";
+        card.dataset.name = stream.name.toLowerCase();
+        card.dataset.group = stream.group;
+        
+        const container = document.createElement("div");
+        container.className = "video-container";
+        
+        const skeleton = document.createElement("div");
+        skeleton.className = "skeleton";
+        
+        const video = document.createElement("video");
+        video.muted = true;
+        video.playsInline = true;
+        video.setAttribute("preload", "none");
+        video.dataset.url = stream.url;
+        
+        const liveBadge = document.createElement("div");
+        liveBadge.className = "live-badge";
+        liveBadge.innerHTML = '<div class="live-dot"></div>LIVE';
+        
+        const quality = document.createElement("div");
+        quality.className = "stream-quality";
+        quality.textContent = "HD";
+        
+        const overlay = document.createElement("div");
+        overlay.className = "channel-overlay";
+        overlay.textContent = stream.name.toUpperCase();
+        
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "close-fullscreen";
+        closeBtn.innerHTML = "✕";
+        closeBtn.title = "Esci Fullscreen (ESC)";
+        closeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleVideoFullscreen(video);
+        });
+        
+        container.appendChild(skeleton);
+        container.appendChild(liveBadge);
+        container.appendChild(quality);
+        container.appendChild(video);
+        container.appendChild(overlay);
+        container.appendChild(closeBtn);
+        card.appendChild(container);
+        fragment.appendChild(card);
+        
+        container.addEventListener("click", (e) => {
+            if (e.target.classList.contains('close-fullscreen')) return;
+            e.stopPropagation();
+            toggleVideoFullscreen(video);
+        });
+        videoObserver.observe(video);
+    });
+    
+    wall.innerHTML = '';
+    wall.appendChild(fragment);
+    setTimeout(rebalancePool, 100);
+    showToast(`✓ ${streams.length} canali caricati${STATE.isLargeList ? ' (modalità performance)' : ''}`);
+}
+
+function renderCategories() {
+    const tabs = $('categoryTabs');
+    tabs.innerHTML = '<div class="category-tab active" data-category="all">Tutti</div>';
+    Array.from(STATE.categories).filter(c => c !== 'all').sort().forEach(cat => {
+        const tab = document.createElement('div');
+        tab.className = 'category-tab';
+        tab.dataset.category = cat;
+        tab.textContent = cat;
+        tabs.appendChild(tab);
+    });
+    tabs.querySelectorAll('.category-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            STATE.currentCategory = tab.dataset.category;
+            applyFilters();
+        });
+    });
+}
+
+function applyFilters() {
+    const query = STATE.searchQuery.toLowerCase();
+    const category = STATE.currentCategory;
+    document.querySelectorAll('.video-card').forEach(card => {
+        const name = card.dataset.name || '';
+        const group = card.dataset.group || '';
+        const matchesSearch = !query || name.includes(query);
+        const matchesCategory = category === 'all' || group === category;
+        if (matchesSearch && matchesCategory) {
+            card.classList.remove('filtered-out');
+        } else {
+            card.classList.add('filtered-out');
+            const video = card.querySelector('video');
+            if (video && STATE.activeHlsInstances.has(video)) releaseStream(video);
+        }
+    });
+    setTimeout(rebalancePool, 100);
+}
+
+$('searchInput').addEventListener('input', (e) => {
+    STATE.searchQuery = e.target.value;
+    applyFilters();
+});
+
+$('volumeSlider').addEventListener('input', (e) => {
+    STATE.globalVolume = e.target.value / 100;
+    document.querySelectorAll('video').forEach(v => { if (!v.muted) v.volume = STATE.globalVolume; });
+    saveSettings();
+});
+
+$('cinemaBtn').addEventListener('click', toggleCinema);
+function toggleCinema() {
+    document.body.classList.toggle('cinema-mode');
+    showToast(document.body.classList.contains('cinema-mode') ? '🎬 Cinema Mode ON' : '🎬 Cinema Mode OFF');
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    switch(e.key.toLowerCase()) {
+        case 'c': toggleCinema(); break;
+        case 'f':
+            if (STATE.currentlyActiveVideo) toggleVideoFullscreen(STATE.currentlyActiveVideo);
+            else {
+                const firstVisible = document.querySelector('.video-card:not(.filtered-out) video');
+                if (firstVisible) toggleVideoFullscreen(firstVisible);
+            }
+            break;
+        case 'm':
+            if (STATE.currentlyActiveVideo) STATE.currentlyActiveVideo.muted = !STATE.currentlyActiveVideo.muted;
+            break;
+        case 'escape':
+            if (STATE.currentlyActiveContainer) {
+                exitFullscreenFromContainer(STATE.currentlyActiveContainer);
+            } else if (document.body.classList.contains('cinema-mode')) {
+                toggleCinema();
+            }
+            break;
+        case 'arrowleft':
+        case 'arrowright':
+            navigateChannel(e.key === 'arrowright' ? 1 : -1);
+            break;
+    }
+});
+
+function navigateChannel(direction) {
+    const cards = Array.from(document.querySelectorAll('.video-card:not(.filtered-out)'));
+    if (!cards.length) return;
+    let currentIndex = -1;
+    if (STATE.currentlyActiveVideo && STATE.originalParent) {
+        currentIndex = cards.indexOf(STATE.originalParent);
+    }
+    let newIndex = currentIndex + direction;
+    if (newIndex < 0) newIndex = cards.length - 1;
+    if (newIndex >= cards.length) newIndex = 0;
+    if (STATE.currentlyActiveContainer) {
+        exitFullscreenFromContainer(STATE.currentlyActiveContainer);
+    }
+    const newCard = cards[newIndex];
+    const newVideo = newCard.querySelector('video');
+    if (newVideo) {
+        toggleVideoFullscreen(newVideo);
+        newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+$('m3uFile').addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (ev) => renderWall(parseM3UAdvanced(ev.target.result));
+        reader.readAsText(e.target.files[0]);
+    }
+});
+
+$('cols').addEventListener('change', () => {
+    const cols = Math.max(1, parseInt($('cols').value || 5, 10));
+    wall.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    saveSettings();
+    setTimeout(rebalancePool, 100);
+});
+
+async function fetchFeed(feedUrl) {
+    const api = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+    const res = await fetch(api);
+    if (!res.ok) throw new Error("Feed non raggiungibile");
+    return res.json();
+}
+
+async function loadRSSFeeds() {
+    const promises = CONFIG.RSS_FEEDS.map(url => fetchFeed(url).catch(() => null));
+    const results = await Promise.allSettled(promises);
+    let allNews = [];
+    results.forEach(result => {
+        if (result.status === 'fulfilled' && result.value && Array.isArray(result.value.items)) {
+            allNews.push(...result.value.items.map(i => ({
+                title: (i.title || "").replace(/\s+/g, " ").trim(),
+                date: i.pubDate ? new Date(i.pubDate) : new Date()
+            })));
+        }
+    });
+    const unique = [];
+    const seen = new Set();
+    allNews.sort((a, b) => b.date - a.date).forEach(n => {
+        if (!seen.has(n.title)) { seen.add(n.title); unique.push(n); }
+    });
+    $('feedStatus').textContent = unique.length > 0 ? "ON" : "OFF";
+    return unique;
+}
+
+function updateTickerUI(text) {
+    const span = $('tickerText');
+    const inner = $('tickerInner');
+    const label = $('tickerLabel');
+    const banner = $('breakingBanner');
+    span.style.transition = "none";
+    span.style.transform = "translateY(-50%)";
+    span.textContent = text || "NESSUNA NOTIZIA — SANDRO WALL TV ";
+    void span.offsetWidth;
+    const textWidth = span.offsetWidth;
+    const containerWidth = inner.offsetWidth;
+    const duration = Math.max(15, Math.ceil((containerWidth + textWidth) / 120));
+    span.style.transition = `transform ${duration}s linear`;
+    span.style.left = `${containerWidth}px`;
+    span.style.transform = `translateY(-50%) translateX(-${textWidth + containerWidth}px)`;
+    const upper = text.toUpperCase();
+    banner.classList.toggle("show", upper.includes("BREAKING") || upper.includes("ULTIM'ORA") || upper.includes("URGENTE"));
+    span.classList.toggle("glow", banner.classList.contains("show"));
+    let color = "#ffccd5";
+    for (const rule of CONFIG.COLOR_RULES) {
+        if (upper.includes(rule.keyword)) { color = rule.color; break; }
+    }
+    span.style.color = color;
+    if (upper.includes("SPORT")) label.textContent = "SPORT";
+    else if (upper.includes("POLITICA")) label.textContent = "POLITICA";
+    else if (upper.includes("METEO")) label.textContent = "METEO";
+    else label.textContent = "LIVE FEED";
+}
+
+let lastTickerText = "";
+async function updateTicker() {
+    try {
+        const news = await loadRSSFeeds();
+        if (!news.length) { updateTickerUI("NESSUNA NOTIZIA — SANDRO WALL TV "); return; }
+        const text = news.slice(0, 25).map(n => n.title).join("    ");
+        if (text !== lastTickerText) { lastTickerText = text; updateTickerUI(text); }
+    } catch (err) { updateTickerUI("ERRORE CONNESSIONE FEED NOTIZIE."); }
+}
+
+loadSettings();
+updateTicker();
+setInterval(updateTicker, 60000);
+setInterval(rebalancePool, 2000);
+window.addEventListener("resize", () => {
+    if (lastTickerText) updateTickerUI(lastTickerText);
+    setTimeout(rebalancePool, 300);
+});
+window.addEventListener('beforeunload', () => {
+    STATE.activeHlsInstances.forEach(hls => hls.destroy());
+});
+showToast('🚀 SANDRO WALL TV v3.2 PRO avviato');
+</script>
+</body>
+</html>
